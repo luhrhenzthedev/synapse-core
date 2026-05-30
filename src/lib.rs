@@ -1,6 +1,7 @@
 pub mod cache;
 pub mod config;
 pub mod db;
+pub mod payments;
 pub mod error;
 pub mod graphql;
 pub mod handlers;
