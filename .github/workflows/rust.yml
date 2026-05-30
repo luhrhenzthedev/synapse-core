@@ -15,6 +15,7 @@ env:
 jobs:
   unit-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -29,9 +30,10 @@ jobs:
           POSTGRES_DB: synapse_test
         options: >-
           --health-cmd pg_isready
-          --health-interval 10s
+          --health-interval 5s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
+          --health-start-period 10s
         ports:
           - 5432:5432
 
@@ -75,7 +77,13 @@ jobs:
 
 
     - name: Run migrations
-      run: sqlx migrate run
+      run: |
+        for i in 1 2 3; do
+          sqlx migrate run && break
+          echo "Migration attempt $i/3 failed, retrying in 5 seconds..."
+          sleep 5
+          [ "$i" -eq 3 ] && { echo "All migration attempts failed"; exit 1; }
+        done
       env:
         DATABASE_URL: postgres://synapse:synapse@localhost:5432/synapse_test
 
@@ -99,6 +107,7 @@ jobs:
 
   integration-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -113,18 +122,20 @@ jobs:
           POSTGRES_DB: synapse_test
         options: >-
           --health-cmd pg_isready
-          --health-interval 10s
+          --health-interval 5s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
+          --health-start-period 10s
         ports:
           - 5432:5432
       redis:
         image: redis:7-alpine
         options: >-
           --health-cmd "redis-cli ping"
-          --health-interval 10s
+          --health-interval 5s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
+          --health-start-period 5s
         ports:
           - 6379:6379
 
@@ -159,7 +170,13 @@ jobs:
 
 
     - name: Run migrations
-      run: sqlx migrate run
+      run: |
+        for i in 1 2 3; do
+          sqlx migrate run && break
+          echo "Migration attempt $i/3 failed, retrying in 5 seconds..."
+          sleep 5
+          [ "$i" -eq 3 ] && { echo "All migration attempts failed"; exit 1; }
+        done
       env:
         DATABASE_URL: postgres://synapse:synapse@localhost:5432/synapse_test
 
@@ -173,6 +190,7 @@ jobs:
 
   coverage:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     needs:
       - unit-tests
       - integration-tests
@@ -189,18 +207,20 @@ jobs:
           POSTGRES_DB: synapse_test
         options: >-
           --health-cmd pg_isready
-          --health-interval 10s
+          --health-interval 5s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
+          --health-start-period 10s
         ports:
           - 5432:5432
       redis:
         image: redis:7-alpine
         options: >-
           --health-cmd "redis-cli ping"
-          --health-interval 10s
+          --health-interval 5s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
+          --health-start-period 5s
         ports:
           - 6379:6379
 
@@ -239,7 +259,13 @@ jobs:
 
 
     - name: Run migrations
-      run: sqlx migrate run
+      run: |
+        for i in 1 2 3; do
+          sqlx migrate run && break
+          echo "Migration attempt $i/3 failed, retrying in 5 seconds..."
+          sleep 5
+          [ "$i" -eq 3 ] && { echo "All migration attempts failed"; exit 1; }
+        done
       env:
         DATABASE_URL: postgres://synapse:synapse@localhost:5432/synapse_test
 
