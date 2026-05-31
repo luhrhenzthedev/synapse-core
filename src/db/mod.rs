@@ -31,6 +31,16 @@
 //! - All connections use SSL/TLS if configured in `database_url`
 //! - Connection strings never logged; only error details logged
 //! - RLS policies enforced via tenant context (see [`queries::set_tenant_context`])
+//!
+//! ## Reconnection and retry behavior
+//!
+//! - Transient database failures are classified by [`crate::utils::retry::is_transient_db_error`]
+//! - Retriable operations use exponential backoff via
+//!   [`crate::utils::retry::retry_with_backoff`]
+//! - Connection pool warm-up is fail-open: startup detects failures without
+//!   making pool creation brittle
+//! - See [database reconnection logic](../../docs/database-reconnection-logic.md)
+//!   for design, security, and recovery guidance
 
 use crate::config::Config;
 use sqlx::postgres::{PgPool, PgPoolOptions};
